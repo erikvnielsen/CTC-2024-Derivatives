@@ -66,10 +66,21 @@ class Strategy:
         tenDayAvg.append(avgPrice)
       
       # WE EXECUTE STRATEGY HERE!!
-      if tenDayGreater and (tenDayAvg < fiveDayAvg):
+      if tenDayGreater and (tenDayAvg.mean()/len(tenDayAvg) < fiveDayAvg.mean()/len(fiveDayAvg)):
         tenDayGreater = False
-      elif not tenDayGreater and (tenDayAvg > fiveDayAvg):
+        dailyData = self.options[self.options["ts_recv"] == strDate]
+        if not sellBear.empty():
+          allOrders.append(sellBear[0])
+          sellBear.pop(0)
+          # SELL BEARISH SIGNAL
+      elif not tenDayGreater and (tenDayAvg.mean()/len(tenDayAvg) > fiveDayAvg.mean()/len(fiveDayAvg)):
         tenDayGreater = True
+        if not sellBull.empty():
+          allOrders.append(sellBull[0])
+          sellBull.pop(0)
+          # SELL BULLISH SIGNAL
+          
+
 
 
       currDate += timedelta(days=1)
