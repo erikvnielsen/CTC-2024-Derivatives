@@ -21,7 +21,7 @@ class Strategy:
 
   def get_third_friday(self, year, month) -> datetime:
     # Create a date object for the first day of the month
-    first_day = datetime.date(self, year, month, 1)
+    first_day = datetime.date(year, month, 1)
     
     # Calculate the first Friday of the month
     first_friday = first_day + datetime.timedelta(days=(4 - first_day.weekday() + 7) % 7)
@@ -36,14 +36,14 @@ class Strategy:
     month = input_date.month
 
     # If the date is after the third Friday, move to the next month
-    if input_date > self.get_third_friday(self, year, month):
+    if input_date > self.get_third_friday(year, month):
         month += 1
         if month > 12:
             month = 1
             year += 1
 
     # Find the next third Friday
-    return self.get_third_friday(self, year, month)
+    return self.get_third_friday(year, month)
 
   def get_weekday_start(self, date) -> datetime:
     if date.weekday() == 6:  # Sunday
@@ -61,7 +61,7 @@ class Strategy:
   def generate_orders(self) -> pd.DataFrame:
     tenDayAvg = []
     fiveDayAvg = []
-    currDate = self.get_weekday_start(self, self.start_date)
+    currDate = self.get_weekday_start(self.start_date)
 
     # GETTING AVGS LOADED
     for i in range(1,10):
@@ -73,7 +73,7 @@ class Strategy:
           fiveDayAvg.append(avgPrice)
         tenDayAvg.append(avgPrice)
       currDate += timedelta(days=1)
-      currDate = self.get_weekday_start(self, currDate)
+      currDate = self.get_weekday_start(currDate)
 
     tenDayGreater = False
     if tenDayAvg > fiveDayAvg:
@@ -96,11 +96,11 @@ class Strategy:
           fiveDayAvg.append(avgPrice)
         tenDayAvg.append(avgPrice)
       
-      thirdFri = self.get_third_friday(self, currDate)
+      thirdFri = self.get_third_friday(currDate)
       optionExpiry = thirdFri.strftime("SPX   %y%m%d")
       dailyOptionsData = self.options[strDate in self.options["data"]]
       # WE EXECUTE STRATEGY HERE!!
-      if tenDayGreater and (self.calculate_mean(self, tenDayAvg) < self.calculate_mean(self, fiveDayAvg)):
+      if tenDayGreater and (self.calculate_mean(tenDayAvg) < self.calculate_mean(fiveDayAvg)):
         tenDayGreater = False
         callExpiry = optionExpiry + "C"
         DesiredBuy = dailyOptionsData[(callExpiry in self.options["symbol"])]
@@ -133,7 +133,7 @@ class Strategy:
           allOrders.append(sellBear[0])
           sellBear.pop(0)
           # SELL BEARISH SIGNAL
-      elif not tenDayGreater and (self.calculate_mean(self, tenDayAvg) > self.calculate_mean(self, fiveDayAvg)):
+      elif not tenDayGreater and (self.calculate_mean(tenDayAvg) > self.calculate_mean(fiveDayAvg)):
         tenDayGreater = True
         putExpiry = optionExpiry + "P"
         DesiredBuy = dailyOptionsData[(putExpiry in self.options["symbol"])]
@@ -168,29 +168,6 @@ class Strategy:
           # SELL BULLISH SIGNAL
           
       currDate += timedelta(days=1)
-      currDate = self.get_weekday_start(self, currDate)
+      currDate = self.get_weekday_start(currDate)
 
     return pd.DataFrame(allOrders)
-    # orders = []
-    # num_orders = 1000
-    
-    # for _ in range(num_orders):
-    #   row = self.options.sample(n=1).iloc[0]
-    #   action = random.choice(["B", "S"])
-      
-    #   if action == "B":
-    #     order_size = random.randint(1, int(row["ask_sz_00"]))
-    #   else:
-    #     order_size = random.randint(1, int(row["bid_sz_00"]))
-
-    #   assert order_size <= int(row["ask_sz_00"]) or order_size <= int(row["bid_sz_00"])
-      
-    #   order = {
-    #     "datetime" : row["ts_recv"],
-    #     "option_symbol" : row["symbol"],
-    #     "action" : action,
-    #     "order_size" : order_size
-    #   }
-    #   orders.append(order)
-    
-    # return pd.DataFrame(orders)
